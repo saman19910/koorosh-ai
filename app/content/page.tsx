@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { generateContent } from "@/lib/groq"; // این هنوز استفاده میشه چون ما داخلش API آزاد گذاشتیم
+import { useRouter } from "next/navigation";
+import { generateContent } from "@/lib/groq"; // اتصال به API
 
 export default function ContentPage() {
   const [topic, setTopic] = useState("");
   const [type, setType] = useState("پست اینستاگرام");
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleGenerate = async () => {
     if (!topic.trim()) return;
@@ -16,7 +18,7 @@ export default function ContentPage() {
     setResult("");
 
     const prompt = `لطفاً به زبان فارسی و با لحن حرفه‌ای یک ${type} با موضوع "${topic}" تولید کن.`;
-    
+
     try {
       const response = await generateContent(prompt);
       setResult(response);
@@ -34,14 +36,14 @@ export default function ContentPage() {
         <p className="text-gray-600 text-lg">با چند کلیک، محتوای حرفه‌ای بساز!</p>
       </div>
 
-      <div className="mt-10 w-full max-w-3xl bg-white p-6 rounded-2xl shadow-lg space-y-4">
+      <div className="mt-10 w-full max-w-3xl bg-white p-6 rounded-2xl shadow-xl space-y-4">
         <label className="block text-right font-semibold text-gray-700">موضوع:</label>
         <input
           type="text"
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
           placeholder="مثلاً معرفی محصول جدید"
-          className="w-full border border-gray-300 rounded-xl p-3"
+          className="w-full border border-gray-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
 
         <label className="block text-right font-semibold text-gray-700 mt-4">نوع محتوا:</label>
@@ -59,7 +61,7 @@ export default function ContentPage() {
         <button
           onClick={handleGenerate}
           disabled={loading}
-          className="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl w-full"
+          className="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl w-full transition duration-300"
         >
           {loading ? "در حال تولید..." : "🚀 تولید محتوا"}
         </button>
@@ -69,6 +71,13 @@ export default function ContentPage() {
             {result}
           </div>
         )}
+
+        <button
+          onClick={() => router.back()}
+          className="mt-4 text-blue-600 hover:underline text-sm"
+        >
+          ← بازگشت به صفحه قبل
+        </button>
       </div>
     </main>
   );

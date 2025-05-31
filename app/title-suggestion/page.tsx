@@ -1,26 +1,34 @@
-// فایل app/titles/page.tsx
+// app/titles/page.tsx
 "use client";
 import { useState } from "react";
 
 export default function TitleSuggester() {
   const [keywords, setKeywords] = useState("");
   const [titles, setTitles] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const suggestTitles = async () => {
-    // نسخه ساده (شبیه‌سازی هوش مصنوعی)
-    const base = keywords.split(" ").join(" + ");
-    setTitles([
-      `پیشنهاد ۱ برای: ${base}`,
-      `پیشنهاد ۲ برای: ${base}`,
-      `پیشنهاد ۳ برای: ${base}`,
-    ]);
+    if (!keywords) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/titles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ keywords }),
+      });
 
-    // نسخه بعدی: استفاده از مدل واقعی متن‌باز
+      const data = await res.json();
+      setTitles(data.titles || []);
+    } catch (err) {
+      setTitles(["❌ خطا در دریافت پیشنهادات."]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <main className="p-6 space-y-4 text-center">
-      <h1 className="text-2xl font-bold">🧠 پیشنهاد عنوان</h1>
+    <main className="p-6 space-y-4 text-center max-w-xl mx-auto">
+      <h1 className="text-2xl font-bold text-indigo-700">🧠 پیشنهاد عنوان مقاله</h1>
       <input
         className="w-full p-3 border rounded-xl"
         placeholder="مثلاً: سلامت ذهن نوجوانان"
@@ -29,9 +37,10 @@ export default function TitleSuggester() {
       />
       <button
         onClick={suggestTitles}
-        className="bg-indigo-600 text-white px-4 py-2 rounded-xl"
+        disabled={loading}
+        className="bg-indigo-600 text-white px-4 py-2 rounded-xl w-full"
       >
-        پیشنهاد بده
+        {loading ? "در حال تولید..." : "پیشنهاد بده"}
       </button>
 
       {titles.length > 0 && (

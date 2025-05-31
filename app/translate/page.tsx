@@ -1,5 +1,4 @@
 "use client";
-import { translateText } from "@/lib/translate";
 import { useState } from "react";
 
 export default function TranslatePage() {
@@ -14,8 +13,20 @@ export default function TranslatePage() {
 
     setLoading(true);
     try {
-      const result = await translateText(inputText, fromLang, toLang);
-      setTranslatedText(result);
+      const response = await fetch("/api/translate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: inputText,
+          from: fromLang,
+          to: toLang,
+        }),
+      });
+
+      const data = await response.json();
+      setTranslatedText(data.result || "❌ خطا در دریافت پاسخ");
     } catch (err) {
       setTranslatedText("❌ خطایی در ترجمه رخ داد.");
     } finally {
