@@ -1,4 +1,4 @@
-\\app\university\summary
+
 'use client';
 import { useState } from "react";
 
