@@ -1,22 +1,21 @@
-// app/api/groq/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
     const { prompt } = await req.json();
 
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+        Authorization: `Bearer ${process.env.GROQ_API_KEY}`, // کلید در .env.local
       },
       body: JSON.stringify({
-        model: "llama3-8b-8192",
+        model: "llama3-8b-8192", // مدل قدرتمند Groq
         messages: [
           {
             role: "system",
-            content: "شما یک دستیار فارسی‌زبان هستید.",
+            content: "شما یک دستیار فارسی‌زبان هستید. لطفاً پاسخ‌ها را به زبان فارسی و روان بنویس.",
           },
           {
             role: "user",
@@ -28,16 +27,24 @@ export async function POST(req: NextRequest) {
       }),
     });
 
-    if (!res.ok) {
-      const errText = await res.text();
-      return NextResponse.json({ content: `❌ خطای ${res.status}: ${errText}` });
+    if (!groqResponse.ok) {
+      const errorText = await groqResponse.text();
+      return NextResponse.json(
+        { error: "پاسخ نامعتبر از Groq", detail: errorText },
+        { status: groqResponse.status }
+      );
     }
 
-    const data = await res.json();
-    const content = data.choices?.[0]?.message?.content || "❌ پاسخ معتبر دریافت نشد.";
-    return NextResponse.json({ content });
+    const data = await groqResponse.json();
+    const content = data?.choices?.[0]?.message?.content || "❌ پاسخی دریافت نشد.";
 
-  } catch (error: any) {
-    return NextResponse.json({ content: `❌ خطای اجرای API: ${error.message}` });
+    return NextResponse.json({ content });
+  } catch (error) {
+    console.error("❌ خطای سرور:", error);
+    return NextResponse.json({ error: "خطای داخلی سرور" }, { status: 500 });
   }
+}
+
+export function GET() {
+  return NextResponse.json({ message: "لطفاً از روش POST استفاده کنید." }, { status: 405 });
 }
